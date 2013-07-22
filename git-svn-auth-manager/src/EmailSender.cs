@@ -47,23 +47,32 @@ Best,
 			if ((settings ["mail_sending_enabled"] ?? "false") == "false")
 				return false;
 
-			string smtp_username = settings ["smtp_username"];
-			string smtp_password = settings ["smtp_password"];
+            string smtp_username = "";
 
-			string smtp_server_host = settings ["smtp_server_host"] ?? SMTP_SERVER_HOST_DEFAULT;
+            string smtp_server_host = settings["smtp_server_host"] ?? SMTP_SERVER_HOST_DEFAULT;
 			string smtp_server_port = settings ["smtp_server_port"] ?? SMTP_SERVER_PORT_DEFAULT;
 
-			string mail_from = settings ["mail_from"] ?? smtp_username;
-			string mail_subject = settings ["mail_subject"] ?? String.Format (MAIL_SUBJECT_DEFAULT, MainClass.APP_NAME);
-			string mail_body = settings ["mail_body"] ?? MAIL_BODY_DEFAULT;
+            SmtpClient smtp     = new SmtpClient(smtp_server_host, Convert.ToInt32(smtp_server_port));
 
-			MailMessage message = new MailMessage (mail_from, user.email, mail_subject,
-			                                       String.Format (mail_body, user.name, MainClass.APP_NAME,
-			                                                      user.svn_username, error));
+            string mail_from    = settings["mail_from"] ?? smtp_username;
+            string mail_subject = settings["mail_subject"] ?? String.Format(MAIL_SUBJECT_DEFAULT, MainClass.APP_NAME);
+            string mail_body    = settings["mail_body"] ?? MAIL_BODY_DEFAULT;
 
-			SmtpClient smtp = new SmtpClient (smtp_server_host, Convert.ToInt32 (smtp_server_port));
-			smtp.Credentials = new NetworkCredential (smtp_username, smtp_password);
-			smtp.EnableSsl = true;
+            if ( ( settings ["smtp_enablessl"] ?? "true" ) == "true" )
+            {
+                smtp.EnableSsl          = true;
+                smtp_username           = settings["smtp_username"];
+                string smtp_password    = settings["smtp_password"];
+                smtp.Credentials        = new NetworkCredential(smtp_username, smtp_password);
+            }
+            else
+            {
+                smtp.EnableSsl = false;
+            }
+
+            MailMessage message = new MailMessage(mail_from, user.email, mail_subject,
+                                                   String.Format(mail_body, user.name, MainClass.APP_NAME,
+                                                                  user.svn_username, error));
 
 			// importing the GMail certificate is a hassle, see http://stackoverflow.com/a/9803922
 			if ((settings ["do_not_check_server_certificate"] ?? "true") == "true")

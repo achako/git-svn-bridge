@@ -4,6 +4,7 @@
     <add key="svn_auth_dir" value="/home/git-svn-bridge/.subversion/auth" />
     <add key="db_filename" value="/home/git-svn-bridge/.config/git-svn-auth-manager/userinfo.db" />
     <add key="mail_sending_enabled" value="false" />
+    <add key="smtp_enablessl" value="true" />
     <add key="smtp_username" value="username@gmail.com" />
     <add key="smtp_password" value="password" />
     <add key="smtp_server_host" value="smtp.gmail.com" />
