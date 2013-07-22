@@ -47,7 +47,7 @@ Best,
 			if ((settings ["mail_sending_enabled"] ?? "false") == "false")
 				return false;
 
-            string smtp_username = "";
+            string smtp_username = settings["smtp_username"];
 
             string smtp_server_host = settings["smtp_server_host"] ?? SMTP_SERVER_HOST_DEFAULT;
 			string smtp_server_port = settings ["smtp_server_port"] ?? SMTP_SERVER_PORT_DEFAULT;
@@ -61,7 +61,6 @@ Best,
             if ( ( settings ["smtp_enablessl"] ?? "true" ) == "true" )
             {
                 smtp.EnableSsl          = true;
-                smtp_username           = settings["smtp_username"];
                 string smtp_password    = settings["smtp_password"];
                 smtp.Credentials        = new NetworkCredential(smtp_username, smtp_password);
             }
