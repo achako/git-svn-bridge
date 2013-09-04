@@ -39,6 +39,8 @@ namespace GitSvnAuthManager
 		public static void OutputForGitAuthorsProg (string svn_username)
 		{
 			var user = EncryptedUserRepository.Instance.LoadBySvnUsername (svn_username);
+            // Eƒ[ƒ‹‚ğ¬•¶š‚É‚·‚é
+            user.email = user.email.ToLower();
 
 			Console.WriteLine ("{0} <{1}>", user.name, user.email);
 		}
@@ -50,7 +52,8 @@ namespace GitSvnAuthManager
 		{
 			if (!EmailSender.IsEmailValid (email))
 				throw new ApplicationException ("Invalid email: " + email);
-
+            // ¬•¶š‚É•ÏŠ·
+            email = email.ToLower();
 			var user = EncryptedUserRepository.Instance.LoadByEmail (email);
 
 			string svn_auth_dir = Config.Settings ["svn_auth_dir"] ??

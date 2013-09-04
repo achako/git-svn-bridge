@@ -40,6 +40,48 @@ Best,
 			return true;
 		}
 
+        public static bool SendErrorEmail( string error )
+        {
+            var settings = Config.Settings;
+
+            if ((settings["mail_sending_enabled"] ?? "false") == "false")
+                return false;
+
+            string smtp_username = settings["smtp_username"];
+
+            string smtp_server_host = settings["smtp_server_host"] ?? SMTP_SERVER_HOST_DEFAULT;
+            string smtp_server_port = settings["smtp_server_port"] ?? SMTP_SERVER_PORT_DEFAULT;
+
+            SmtpClient smtp = new SmtpClient(smtp_server_host, Convert.ToInt32(smtp_server_port));
+
+            string mail_from = settings["mail_from"] ?? smtp_username;
+            string mail_subject = settings["mail_subject"] ?? String.Format(MAIL_SUBJECT_DEFAULT, MainClass.APP_NAME);
+            string mail_body = settings["mail_body"] ?? MAIL_BODY_DEFAULT;
+
+            if ((settings["smtp_enablessl"] ?? "true") == "true")
+            {
+                smtp.EnableSsl = true;
+                string smtp_password = settings["smtp_password"];
+                smtp.Credentials = new NetworkCredential(smtp_username, smtp_password);
+            }
+            else
+            {
+                smtp.EnableSsl = false;
+            }
+            String mail_message = mail_body + "\nErrorMessage:" + error;
+            MailMessage message = new MailMessage(mail_from, smtp_username, mail_subject, mail_message);
+
+            // importing the GMail certificate is a hassle, see http://stackoverflow.com/a/9803922
+            if ((settings["do_not_check_server_certificate"] ?? "true") == "true")
+                ServicePointManager.ServerCertificateValidationCallback = delegate(object s, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
+                {
+                    return true;
+                };
+
+            smtp.Send(message);
+            return true;
+        }
+
 		public static bool SendErrorEmail (User user, string error)
 		{
 			var settings = Config.Settings;
@@ -68,10 +110,8 @@ Best,
             {
                 smtp.EnableSsl = false;
             }
-
-            MailMessage message = new MailMessage(mail_from, user.email, mail_subject,
-                                                   String.Format(mail_body, user.name, MainClass.APP_NAME,
-                                                                  user.svn_username, error));
+            String mail_massage = String.Format(mail_body, user.name, MainClass.APP_NAME, user.svn_username, error) + "\n" + error;
+            MailMessage message = new MailMessage(mail_from, smtp_username, mail_subject, mail_massage);
 
 			// importing the GMail certificate is a hassle, see http://stackoverflow.com/a/9803922
 			if ((settings ["do_not_check_server_certificate"] ?? "true") == "true")

@@ -2,6 +2,8 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Threading;
+using System.Text;
 
 using Mono.Options;
 
@@ -13,6 +15,7 @@ namespace GitSvnAuthManager
 		private const string OPT_ADD_USER = "add_user";
 		private const string OPT_CHANGE_PASSWD = "change_passwd";
 		private const string OPT_RESET_AUTH = "reset_auth";
+        private const string ERROR_LOG_PATH = "./error_{0}.log";
 
 		public static int Main (string[] args)
 		{
@@ -174,5 +177,69 @@ Options:", APP_NAME));
 ", APP_NAME));
 			}
 		}
-	}
+
+        /// <summary>
+        /// 未処理例外をキャッチするイベント・ハンドラ
+        /// (主にWindowsアプリケーション)
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        static void Application_ThreadException(object sender, ThreadExceptionEventArgs e)
+        {
+            if( e.Exception != null )
+            {
+                WriteError(e.Exception);
+            }
+        }
+
+        /// <summary>
+        /// 未処理例外をキャッチするイベント・ハンドラ
+        /// マネージ コードを実行しているスレッド上で例外が処理不能になり、
+        /// かつ、CLR のハンドルされない例外の処理がトリガされたときにトリガされる
+        /// (主にコンソールアプリケーション)
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        static void Application_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            Exception ex = (Exception)e.ExceptionObject;
+            if (ex != null)
+            {
+                WriteError(ex);
+            }
+        }
+
+        static void WriteError( Exception ex )
+        {
+            // エラーをログに残す
+            FileStream fs = null;
+            StreamWriter sw = null;
+            try
+            {
+                DateTime time = System.DateTime.Now;
+                String log_path = String.Format( ERROR_LOG_PATH, time.ToString( "yyyy-mm-dd-hh-mm-ss" ) );
+                fs = new FileStream(log_path, FileMode.Create);
+                sw = new StreamWriter(fs, Encoding.UTF8);
+                // 日時の記録
+                sw.WriteLine(time.ToString());
+                // エラーの記録
+                sw.WriteLine( ex.ToString() );
+            }
+            catch (Exception e)
+            {
+                System.Diagnostics.Debug.WriteLine(e.Message);
+            }
+            finally
+            {
+                if (sw != null)
+                {
+                    sw.Close();
+                }
+                if (fs != null)
+                {
+                    fs.Close();
+                }
+            }
+        }
+    }
 }

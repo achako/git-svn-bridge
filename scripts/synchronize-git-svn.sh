@@ -237,6 +237,7 @@ function synchronize_svn_bridge_and_central_repo()
 	local SVN_URL=`git svn info --url`
 	check_status "git svn info --url" "$LOGFILE"
 	local AUTHOR_EMAIL=`git log -n 1 --format='%ae'`
+	AUTHOR_EMAIL=${AUTHOR_EMAIL,,}
 	check_status "git log -n 1 --format='%ae'" "$LOGFILE"
 	echo "Using SVN URL '$SVN_URL' and author email '$AUTHOR_EMAIL'" >> "$LOGFILE"
 
